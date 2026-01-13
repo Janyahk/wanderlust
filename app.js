@@ -1,3 +1,7 @@
+if(process.env.NODE_ENV!="production"){
+require('dotenv').config();
+}
+
 const express=require("express");
 const app=express();
 const mongoose=require("mongoose");
@@ -7,12 +11,18 @@ const ejsMate=require("ejs-mate");
 const listingRouter=require("./routes/listings.js")
 const reviewRouter=require("./routes/reviews.js")
 const userRouter=require("./routes/user.js");
+const ExpressError = require("./utils/ExpressError.js");
 
 const session=require("express-session")
+const MongoStore = require("connect-mongo").default;
+
 const flash=require("connect-flash");
 const passport=require("passport");
 const LocalStrategy=require("passport-local");
 const User=require("./models/user.js");
+const { error } = require('console');
+const dburl=process.env.ATLASDB_URL;
+
 app.engine('ejs',ejsMate);
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname,"/public")));//static file link
@@ -26,12 +36,24 @@ main().then(()=>{
 console.log("the DB connected");
 }).catch((err)=>{console.log(err)});
 
-app.get("/",(req,res)=>{
-    res.send("its working")
+// app.get("/",(req,res)=>{
+//     res.send("its working")
+// })
+const store=MongoStore.create(
+    {
+        mongoUrl:dburl,
+        crypto:{
+            secret:process.env.SECRET,    
+        },
+        touchAfter:24*3600,
+    }
+)
+store.on("error",()=>{
+console.log("ERROR in MONGO SESSION STORE",err);
 })
-
 const sessionOptions={
-    secret:"myscreatecode",
+    store,
+    secret:process.env.SECRET,
     resave:false,
     saveUninitialized:true,
     cookie:{
@@ -40,6 +62,8 @@ const sessionOptions={
         httpOnly:true,
     }
 };
+
+
 app.use(session(sessionOptions));
 app.use(flash());
 app.use(passport.initialize());
@@ -64,7 +88,9 @@ app.use((req,res,next)=>{
 //  res.send(reguser);
 // })
 async function main() {
-    await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust");
+    // await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust");
+        await mongoose.connect(dburl);
+
 
 }
 

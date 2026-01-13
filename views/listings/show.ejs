@@ -1,5 +1,8 @@
 <% layout("/layouts/boilerplate") %>
-
+<script>
+    const maptoken="<%= process.env.MAP_TOKEN%>";
+    let listing= <%- JSON.stringify(place) %> 
+</script>
     <body>
         <div class="row">
             <div class="col-8 offset-3 mt-3">
@@ -8,7 +11,7 @@
                     </b></h3>
             </div>
             <div class="lcard col-6 offset-3 show-card">
-                <img src="<%=place.image%>" class="card-img-top show-img" alt="listing_image">
+                <img src="<%=place.image.url%>" class="card-img-top show-img" alt="listing_image">
                 <div class="card-body">
                     <p class="card-text">
 
@@ -45,14 +48,32 @@
         </div>
         
         <div class="col-8 offset-3 mb-3">
-            <hr>
+            
             <% if(currentuser){ %>
+                <hr>
             <h4>Leave a Review </h4>
             <form action="/listings/<%= place.id %>/reviews" method="post" novalidate class="needs-validation" >
-        <div class="mb-3 mt-3">
+        <!-- <div class="mb-3 mt-3">
             <label for="rating" class="form-label">Rating</label>
             <input type="range" min="1" max="5" name="review[rating]" class="form-range" >
-        </div>
+        </div> -->
+        <div class="mb-3 mt-3">
+        <label for="rating" class="form-label">Rating</label>
+        <fieldset class="starability-slot">
+  <!-- <input type="range" min="1" max="5" name="review[rating]" class="form-range" > -->
+  <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]" value="1" checked aria-label="No rating." />
+  <input type="radio" id="first-rate1" name="review[rating]" value="1" />
+  <label for="first-rate1" title="Terrible">1 star</label>
+  <input type="radio" id="first-rate2" name="review[rating]" value="2" />
+  <label for="first-rate2" title="Not good">2 stars</label>
+  <input type="radio" id="first-rate3" name="review[rating]" value="3" />
+  <label for="first-rate3" title="Average">3 stars</label>
+  <input type="radio" id="first-rate4" name="review[rating]" value="4" />
+  <label for="first-rate4" title="Very good">4 stars</label>
+  <input type="radio" id="first-rate5" name="review[rating]" value="5" />
+  <label for="first-rate5" title="Amazing">5 stars</label>
+</fieldset>
+</div>
         <div class="mb-3 mt-3">
             <label for="comment" class="form-label">Comments
             </label>
@@ -64,15 +85,17 @@
         
         <hr>
         <% } %>
-        <h6>All Reviews</h6>
+         <% if(place.reviews.length>0) {%>
          <div class="row">
-
+             <h6>All Reviews</h6>
                 <% for(let review of place.reviews) { %> 
          <div class="card col-5 m-2">
              <div class="card-body">
                 <div class="card-title"> <b><%= review.author.username %></b></div>
+                 <p class="starability-result card-text" data-rating="<%= review.rating %>">Rated: 3 stars</p>
+
                 <div class="card-text"><%= review.comment %></div>
-                <div class="card-text"><%= review.rating %> Stars</div>
+                <!-- <div class="card-text"><%= review.rating %> Stars</div> -->
                 <% if(currentuser && currentuser._id.equals(place.owner._id)){%>
                 <form action="/listings/<%= place.id %>/reviews/<%= review._id %>?_method=DELETE" method="post" class="mb-3">
                     <button class="btn btn-dark mb-3 ">Delete</button>
@@ -83,5 +106,12 @@
          </div>
             <% } %>
             </div>
+         <% } %>
         </div>
+           <div class="col-8 offset-3 mb-3">
+                <h3>Where you'll be</h3>
+                <div id="map"></div>
+                
+            </div>
         </div>
+       <script src="/js/map.js"></script>

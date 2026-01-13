@@ -1,6 +1,7 @@
 const mongoose=require("mongoose");
 const { Schema } = mongoose;   // <-- add this line
-const Review=require("./review.js")
+const Review=require("./review.js");
+const { required } = require("joi");
 const listingSchema=new mongoose.Schema({
     title:{
         type:String,
@@ -13,9 +14,11 @@ const listingSchema=new mongoose.Schema({
     maxLength:[500,"the exceed of words"],
     },
     image:{
-        type:String,
-        default:"https://unsplash.com/photos/photo-of-seashore-d7M5Xramf8g",
-        set:(v)=> v===""?"https://unsplash.com/photos/photo-of-seashore-d7M5Xramf8g":v,
+        // type:String,
+        // default:"https://unsplash.com/photos/photo-of-seashore-d7M5Xramf8g",
+        // set:(v)=> v===""?"https://unsplash.com/photos/photo-of-seashore-d7M5Xramf8g":v,
+        url:String,
+        filename:String,
     },
     price:{
         type:Number,
@@ -36,7 +39,22 @@ const listingSchema=new mongoose.Schema({
     owner:{
         type:Schema.Types.ObjectId,
         ref:"User",
-        }
+        },
+ geometry: {
+    type: {
+      type: String, // Don't do `{ location: { type: String } }`
+      enum: ['Point'], // 'location.type' must be 'Point'
+      required: true
+    },
+    coordinates: {
+      type: [Number],
+      required: true
+    }
+  }
+        // category:{
+        //     type:string,
+        //     enum:["mo"]
+        // }
 });
 
 listingSchema.post("findOneAndDelete",async(listing)=>{
